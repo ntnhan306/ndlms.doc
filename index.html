@@ -19,6 +19,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
 }
 
 th, td {
@@ -31,9 +32,16 @@ th {
   text-align: center;
 }
 
-td.stt {
+th.stt, td.stt {
+  width: 1%;
+  white-space: nowrap;
   text-align: center;
-  width: 60px;
+}
+
+th.download, td.download {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
 }
 
 td.download {
