@@ -278,13 +278,49 @@ function preview(path) {
   /* ================= PDF ================= */
   if (PDF.includes(ext)) {
     toolbar.innerHTML = `
-      <button id="z-">−</button>
-      <span id="zv">100%</span>
-      <button id="z+">+</button>
-      <span style="margin-left:10px">
-        <input id="pg" type="number" min="1" value="1" style="width:50px"> /
-        <span id="tp">?</span>
-      </span>
+        <button id="z-" style="
+          width:32px;height:32px;
+          border:none;
+          border-radius:6px;
+          background:#e5e7eb;
+          cursor:pointer;
+          font-size:18px;
+        ">−</button>
+      
+        <input id="zv" type="number" value="100" min="10" max="400" style="
+          width:70px;
+          height:32px;
+          text-align:center;
+          border:1px solid #cbd5f1;
+          border-radius:6px;
+          font-weight:600;
+        ">%
+      
+        <button id="z+" style="
+          width:32px;height:32px;
+          border:none;
+          border-radius:6px;
+          background:#e5e7eb;
+          cursor:pointer;
+          font-size:18px;
+        ">+</button>
+      
+        <span style="
+          margin-left:12px;
+          display:flex;
+          align-items:center;
+          gap:4px;
+        ">
+          <input id="pg" type="number" min="1" value="1" style="
+            width:60px;
+            height:32px;
+            text-align:center;
+            border:1px solid #cbd5f1;
+            border-radius:6px;
+          ">
+          /
+          <span id="tp">?</span>
+        </span>
     `;
 
     pdfjsLib.GlobalWorkerOptions.workerSrc =
