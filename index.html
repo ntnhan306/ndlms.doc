@@ -43,17 +43,22 @@ th.download, td.download {
   text-align: center;
 }
 
+th.preview, td.preview {
+  width: 1%;
+  text-align: center;
+}
+
 td.loai {
   width: 1%;
   white-space: nowrap;
   text-align: center;
 }
 
-td.download {
+td.download, td.preview {
   text-align: center;
 }
       
-td.download .wrap {
+td.download .wrap, td.preview .wrap {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,6 +91,32 @@ button.download-btn:hover {
 button.download-btn:active {
   transform: scale(0.95);
 }
+
+button.preview-btn {
+  width: 40px;
+  height:40px;
+  border-radius: 50%;
+  background: none;
+  border: 3px solid transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: #2563eb;
+  transition: 
+    color 0.25s ease,
+    transform 0.2s ease,
+    border 0.2s ease,
+    box-shadow 0.25s ease;
+}
+
+button.preview-btn:hover {
+  border: 3px #dc2626 solid;
+  transform: scale(1.15);
+  color: #dc2626;
+}
+
+button.preview-btn:active {
+  transform: scale(0.95);
+}
 </style>
 </head>
 
@@ -100,6 +131,7 @@ button.download-btn:active {
       <th class="stt">STT</th>
       <th>Loại</th>
       <th>Tên tài liệu</th>
+      <th class="preview">Xem trước</th>
       <th class="download">Tải xuống</th>
     </tr>
   </thead>
@@ -124,19 +156,19 @@ const data_table = [
   // ["", "", ""],
   // ["", "", ""],
   // ["", "", ""],
+  // // ["", "", ""],
   // ["", "", ""],
   // ["", "", ""],
   // ["", "", ""],
   // ["", "", ""],
   // ["", "", ""],
   // ["", "", ""],
-  // ["", "", ""],
-  // ["", "", ""],
-  // ["", "", ""],
-  // ["", "", ""],
-  // ["", "", ""],
-  // ["", "", ""],
-  // ["", "", ""],
+  ["Đề có đáp án", "ÔN TẬP CUỐI KÌ 1 CÔNG NGHỆ 8", "ON_TAP_CUOI_KI_1_CONG_NGHE_8.pdf"],
+  ["Đề có đáp án", "TIN HỌC 25-26", "TIN_HOC_25-26.pdf"],
+  ["Đề có đáp án", "KIỂM TRA TX PHÂN MÔN ĐỊA LÍ 8 (25-26)", "KIEM_TRA_TX_PHAN_MON_DIA_LI_8_(25-26).pdf"],
+  ["Đề", "CÂU HỎI ÔN TẬP GIỮA KỲ 1 - MÔN KHTN 8 (VẬT LÝ)", "CAU_HOI_ON_TAP_GIUA_KY_1_-_MON_KHTN_8_(VAT_LY).pdf"],
+  ["Đề có đáp án", "TRẮC NGHIỆM - ÔN TẬP GK1 - KHTN 8 (VẬT LÝ)", "TRAC_NGHIEM_-_ON_TAP_GK1_-_KHTN_8_(VAT_LY).DAPAN.pdf"],
+  ["Đề", "TRẮC NGHIỆM - ÔN TẬP GK1 - KHTN 8 (VẬT LÝ)", "TRAC_NGHIEM_-_ON_TAP_GK1_-_KHTN_8_(VAT_LY).pdf"],
   ["Đề", "HỆ THỐNG MỘT SỐ CÂU HỎI ÔN TẬP KHTN 8 GKI – HOÁ", "HE_THONG_MOT_SO_CAU_HOI_ON_TAP_KHTN_8_GKI_-_HOA.pdf"],
   ["Đề", "HH-ÔN KTGK I - TOÁN 8- NĂM 25-26", "HH-ON_KTGK_I_-_TOAN_8-_NAM_25-26.pdf"],
   ["Đề", "ĐẠI SỐ - ÔN KTGK I-TOÁN 8 NĂM 25-26", "DS-ON_KTGK_I-TOAN_8_NAM_25-26.pdf"],
@@ -162,6 +194,13 @@ data_table.forEach((item, index) => {
     <td class="stt">${index + 1}</td>
     <td class="loai">${loai}</td>
     <td>${tenTaiLieu}</td>
+    <td class="preview">
+      <div class="wrap">
+        <button class="preview-btn" title="Xem trước" onclick="preview('${link}')">
+          <i class="fa-solid fa-file-circle-question"></i>
+        </button>
+      </div>
+    </td>
     <td class="download">
       <div class="wrap">
         <a href="${link}" download>
@@ -175,7 +214,173 @@ data_table.forEach((item, index) => {
 
   tbody.appendChild(tr);
 });
-</script>
 
+function preview(filePath) {
+  // ====== XÓA PREVIEW CŨ NẾU CÓ ======
+  const old = document.getElementById("preview-overlay");
+  if (old) old.remove();
+
+  // ====== LẤY TÊN FILE ======
+  const fileName = filePath.split("/").pop();
+  const ext = fileName.split(".").pop().toLowerCase();
+
+  // ====== RÚT GỌN TÊN FILE ======
+  function shortName(name, max = 38) {
+    const dot = name.lastIndexOf(".");
+    if (dot === -1) return name;
+    const base = name.slice(0, dot);
+    const ext = name.slice(dot);
+    if (base.length <= max) return name;
+    return base.slice(0, max) + "..." + ext;
+  }
+
+  // ====== TẠO OVERLAY ======
+  const overlay = document.createElement("div");
+  overlay.id = "preview-overlay";
+  overlay.innerHTML = `
+    <div class="preview-box">
+      <div class="preview-header">
+        <span class="preview-title" title="${fileName}">
+          ${shortName(fileName)}
+        </span>
+        <button class="preview-close">✕</button>
+      </div>
+      <div class="preview-body"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // ====== CSS (GẮN ĐỘNG) ======
+  const style = document.createElement("style");
+  style.textContent = `
+    #preview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn .25s ease;
+    }
+
+    .preview-box {
+      width: 95vw;
+      height: 95vh;
+      background: #fff;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      animation: scaleIn .25s ease;
+    }
+
+    .preview-header {
+      height: 48px;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .preview-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: calc(100% - 40px);
+    }
+
+    .preview-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .preview-body {
+      flex: 1;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-body iframe,
+    .preview-body img,
+    .preview-body pre {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    .preview-body pre {
+      padding: 16px;
+      overflow: auto;
+      font-family: Consolas, monospace;
+      font-size: 14px;
+    }
+
+    @keyframes fadeIn {
+      from {opacity:0}
+      to {opacity:1}
+    }
+
+    @keyframes scaleIn {
+      from {transform:scale(.95)}
+      to {transform:scale(1)}
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ====== NÚT ĐÓNG ======
+  overlay.querySelector(".preview-close").onclick = () => overlay.remove();
+
+  const body = overlay.querySelector(".preview-body");
+
+  // ====== HIỂN THỊ THEO LOẠI FILE ======
+  if (["png","jpg","jpeg","gif","webp"].includes(ext)) {
+    const img = document.createElement("img");
+    img.src = filePath;
+    img.style.objectFit = "contain";
+    body.appendChild(img);
+
+  } else if (ext === "pdf") {
+    const iframe = document.createElement("iframe");
+    iframe.src = filePath;
+    body.appendChild(iframe);
+
+  } else if (ext === "txt") {
+    fetch(filePath)
+      .then(r => r.text())
+      .then(t => {
+        const pre = document.createElement("pre");
+        pre.textContent = t;
+        body.appendChild(pre);
+      });
+
+  } else if (["doc","docx","xls","xlsx","ppt","pptx"].includes(ext)) {
+    const iframe = document.createElement("iframe");
+    iframe.src =
+      "https://docs.google.com/gview?embedded=1&url=" +
+      encodeURIComponent(location.origin + "/" + filePath);
+    body.appendChild(iframe);
+
+  } else {
+    body.innerHTML = `
+      <div style="text-align:center">
+        <p>Không xem trực tiếp được định dạng này.</p>
+        <a href="${filePath}" download>Tải file về</a>
+      </div>
+    `;
+  }
+}
+</script>
 </body>
 </html>
