@@ -395,7 +395,7 @@ function preview(path) {
   /* ================= TEXT ================= */
   if (TEXT.includes(ext)) {
     fetch(path).then(r=>r.text()).then(t=>{
-      viewer.innerHTML = `<pre>${t.replace(/</g,"&lt;")}</pre>`;
+      viewer.innerHTML = `<pre style="height: 100%; width: 100%;">${t.replace(/</g,"&lt;")}</pre>`;
     });
     return;
   }
