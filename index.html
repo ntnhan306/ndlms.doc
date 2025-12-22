@@ -218,13 +218,15 @@ data_table.forEach((item, index) => {
 });
 
 function preview(path) {
+  document.querySelector(".pv-overlay")?.remove();
+
   const fileName = decodeURIComponent(path.split("/").pop());
   const ext = fileName.split(".").pop().toLowerCase();
 
   const OFFICE = ["doc","docx","xls","xlsx","ppt","pptx"];
-  const IMAGE = ["png","jpg","jpeg","gif","webp"];
-  const PDF = ["pdf"];
-  const TEXT = ["txt"];
+  const IMAGE  = ["png","jpg","jpeg","gif","webp"];
+  const PDF    = ["pdf"];
+  const TEXT   = ["txt"];
 
   const shortName = (n, max=42) => {
     if (n.length <= max) return n;
@@ -234,41 +236,39 @@ function preview(path) {
 
   /* ================= OVERLAY ================= */
   const overlay = document.createElement("div");
+  overlay.className = "pv-overlay";
   overlay.innerHTML = `
-  <div class="pv-overlay">
-    <div class="pv-box">
-      <div class="pv-header">
-        <span class="pv-title" title="${fileName}">
-          ${shortName(fileName)}
-        </span>
-        <button class="pv-close">✕</button>
-      </div>
-
-      <div class="pv-toolbar" id="toolbar"></div>
-
-      <div class="pv-body" id="viewer"></div>
+  <div class="pv-box">
+    <div class="pv-header">
+      <span class="pv-title" title="${fileName}">${shortName(fileName)}</span>
+      <button class="pv-close">✕</button>
     </div>
+
+    <div class="pv-toolbar" id="toolbar"></div>
+    <div class="pv-body" id="viewer"></div>
   </div>`;
   document.body.appendChild(overlay);
 
   /* ================= CSS ================= */
-  const style = document.createElement("style");
-  style.textContent = `
-  .pv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999}
-  .pv-box{width:95vw;height:95vh;background:#fff;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;animation:pop .3s}
-  .pv-header{height:48px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
-  .pv-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%}
-  .pv-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
-  .pv-toolbar{height:42px;padding:0 12px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;gap:8px}
-  .pv-body{flex:1;overflow:auto;background:#f1f5f9;display:flex;justify-content:center}
-  iframe{border:none;width:100%;height:100%}
-  img{max-width:100%;max-height:100%;margin:auto}
-  pre{white-space:pre-wrap;padding:20px}
-  .pv-center{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-  .pv-btn{padding:0px 0px;background: none;color:#00f;border-radius:0px;text-decoration:none}
-  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:1;opacity:1}}
-  `;
-  document.head.appendChild(style);
+  if (!document.getElementById("pv-style")) {
+    const style = document.createElement("style");
+    style.id = "pv-style";
+    style.textContent = `
+    .pv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .pv-box{width:95vw;height:85vh;bottom:2.5vh;background:#fff;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;animation:pop .3s}
+    .pv-header{height:48px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+    .pv-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%}
+    .pv-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+    .pv-toolbar{height:42px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;gap:8px}
+    .pv-body{flex:1;overflow:auto;background:#f1f5f9;display:flex;justify-content:center}
+    iframe{border:none;width:100%;height:100%}
+    img{max-width:100%;max-height:100%;margin:auto}
+    pre{white-space:pre-wrap;padding:20px}
+    .pv-center{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+    @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:1;opacity:1}}
+    `;
+    document.head.appendChild(style);
+  }
 
   overlay.querySelector(".pv-close").onclick = () => overlay.remove();
 
@@ -278,55 +278,27 @@ function preview(path) {
   /* ================= PDF ================= */
   if (PDF.includes(ext)) {
     toolbar.innerHTML = `
-        <button id="z-" style="
-          width:32px;height:32px;
-          border:none;
-          border-radius:6px;
-          background:#e5e7eb;
-          cursor:pointer;
-          font-size:18px;
-        ">−</button>
-      
-        <input id="zv" type="number" value="100" min="10" max="400" style="
-          width:70px;
-          height:32px;
-          text-align:center;
-          border:1px solid #cbd5f1;
-          border-radius:6px;
-          font-weight:600;
-        ">%
-      
-        <button id="z+" style="
-          width:32px;height:32px;
-          border:none;
-          border-radius:6px;
-          background:#e5e7eb;
-          cursor:pointer;
-          font-size:18px;
-        ">+</button>
-      
-        <span style="
-          margin-left:12px;
-          display:flex;
-          align-items:center;
-          gap:4px;
-        ">
-          <input id="pg" type="number" min="1" value="1" style="
-            width:60px;
-            height:32px;
-            text-align:center;
-            border:1px solid #cbd5f1;
-            border-radius:6px;
-          ">
-          /
-          <span id="tp">?</span>
-        </span>
+      <button id="z-" style="width:32px;height:32px;border:none;border-radius:6px;background:#e5e7eb;cursor:pointer;font-size:18px">−</button>
+
+      <input id="zv" type="number" value="100" min="10" max="400"
+        style="width:70px;height:32px;text-align:center;border:1px solid #cbd5f1;border-radius:6px;font-weight:600">%
+
+      <button id="z+" style="width:32px;height:32px;border:none;border-radius:6px;background:#e5e7eb;cursor:pointer;font-size:18px">+</button>
+
+      <span style="margin-left:12px;display:flex;align-items:center;gap:4px">
+        <input id="pg" type="number" min="1" value="1"
+          style="width:60px;height:32px;text-align:center;border:1px solid #cbd5f1;border-radius:6px">
+        / <span id="tp">?</span>
+      </span>
     `;
 
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-    let scale = 1, canvases = [], pdfDoc;
+    let scale = 1;
+    let pdfDoc;
+    const canvases = [];
+
     const box = document.createElement("div");
     box.style.padding = "20px";
     box.style.display = "flex";
@@ -336,51 +308,56 @@ function preview(path) {
 
     pdfjsLib.getDocument(path).promise.then(pdf => {
       pdfDoc = pdf;
-      overlay.querySelector("#tp").textContent = pdf.numPages;
-      for (let i=1;i<=pdf.numPages;i++){
-        const c=document.createElement("canvas");
-        c.dataset.p=i;
+      toolbar.querySelector("#tp").textContent = pdf.numPages;
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const c = document.createElement("canvas");
+        c.dataset.page = i;
         box.appendChild(c);
         canvases.push(c);
-        render(i,c);
+        renderPage(i, c);
       }
     });
 
-    function render(n,c){
-      pdfDoc.getPage(n).then(p=>{
-        const v=p.getViewport({scale});
-        c.width=v.width;c.height=v.height;
-        p.render({canvasContext:c.getContext("2d"),viewport:v});
+    function renderPage(num, canvas) {
+      pdfDoc.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        page.render({ canvasContext: canvas.getContext("2d"), viewport });
       });
     }
 
-    overlay.querySelector("#z+").onclick=()=>setZoom(scale+.1);
-    overlay.querySelector("#z-").onclick=()=>setZoom(scale-.1);
-
-    function setZoom(z){
-      scale=Math.min(Math.max(z,.5),3);
-      overlay.querySelector("#zv").textContent=Math.round(scale*100)+"%";
-      canvases.forEach(c=>render(c.dataset.p,c));
+    function setZoom(z) {
+      scale = Math.min(Math.max(z, 0.1), 4);
+      toolbar.querySelector("#zv").value = Math.round(scale * 100);
+      canvases.forEach(c => renderPage(c.dataset.page, c));
     }
 
-    viewer.addEventListener("scroll",()=>{
-      let cur=1;
-      canvases.forEach(c=>{if(c.offsetTop<=viewer.scrollTop+10)cur=c.dataset.p});
-      overlay.querySelector("#pg").value=cur;
+    toolbar.querySelector("#z+").onclick = () => setZoom(scale + 0.1);
+    toolbar.querySelector("#z-").onclick = () => setZoom(scale - 0.1);
+    toolbar.querySelector("#zv").onchange = e => setZoom(e.target.value / 100);
+
+    viewer.addEventListener("scroll", () => {
+      let cur = 1;
+      canvases.forEach(c => {
+        if (c.offsetTop <= viewer.scrollTop + 10) cur = c.dataset.page;
+      });
+      toolbar.querySelector("#pg").value = cur;
     });
 
-    overlay.querySelector("#pg").onchange=e=>{
-      const t=canvases[e.target.value-1];
-      t&&viewer.scrollTo({top:t.offsetTop-10,behavior:"smooth"});
+    toolbar.querySelector("#pg").onchange = e => {
+      const t = canvases[e.target.value - 1];
+      t && viewer.scrollTo({ top: t.offsetTop - 10, behavior: "smooth" });
     };
     return;
   }
 
   /* ================= OFFICE ================= */
   if (OFFICE.includes(ext)) {
-    toolbar.innerHTML = `<strong>ONLYOFFICE Viewer</strong>`;
+    toolbar.innerHTML = "<strong>Office document preview</strong>";
     viewer.innerHTML = `
-      <iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${location.origin}/${path}"></iframe>
+      <iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(location.origin + "/" + path)}"></iframe>
     `;
     return;
   }
@@ -394,8 +371,8 @@ function preview(path) {
 
   /* ================= TEXT ================= */
   if (TEXT.includes(ext)) {
-    fetch(path).then(r=>r.text()).then(t=>{
-      viewer.innerHTML = `<pre style="height: 100%; width: 100%;">${t.replace(/</g,"&lt;")}</pre>`;
+    fetch(path).then(r => r.text()).then(t => {
+      viewer.innerHTML = `<pre>${t.replace(/</g,"&lt;")}</pre>`;
     });
     return;
   }
@@ -404,14 +381,7 @@ function preview(path) {
   viewer.innerHTML = `
     <div class="pv-center">
       <strong>File này không được hỗ trợ hoặc bị lỗi!</strong>
-      <p class="pv-btn">Tải về máy để xem file</p>
-      <div class="wrap">
-        <a href="${path}" download>
-          <button class="download-btn" title="Tải xuống">
-            <i class="fa-solid fa-download"></i>
-          </button>
-        </a>
-      </div>
+      <a href="${path}" download style="color:#2563eb">⬇ Tải về máy</a>
     </div>
   `;
 }
